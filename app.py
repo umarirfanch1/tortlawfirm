@@ -1,30 +1,20 @@
-import subprocess
-import sys
-
-# -------------------- Runtime Box SDK Install --------------------
-try:
-    from boxsdk import JWTAuth, Client
-    BOX_AVAILABLE = True
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "boxsdk==2.14.0"])
-    from boxsdk import JWTAuth, Client
-    BOX_AVAILABLE = True
-
-import streamlit as st
+        import streamlit as st
 import json
 import os
 from datetime import date
 
-# -------------------- Streamlit Page Config --------------------
-st.set_page_config(
-    page_title="Mass Tort Client Intake Form",
-    page_icon="⚖️",
-    layout="wide"
-)
+# ---------- Box SDK Setup (Safe) ----------
+try:
+    from boxsdk import JWTAuth, Client
+    BOX_AVAILABLE = True
+except Exception as e:
+    BOX_AVAILABLE = False
+    st.warning(f"Box SDK not available, file uploads will be saved locally.\nDetails: {e}")
 
-# -------------------- Box Setup --------------------
-FOLDER_ID = '0'  # Replace with your Box folder ID
+# ---------- Box Authentication ----------
+FOLDER_ID = '0'  # Replace with your Box folder ID if needed
 BOX_CONFIG_PATH = 'box_config.json'
+
 if BOX_AVAILABLE:
     try:
         auth = JWTAuth.from_settings_file(BOX_CONFIG_PATH)
@@ -32,15 +22,19 @@ if BOX_AVAILABLE:
         folder = client.folder(folder_id=FOLDER_ID)
     except Exception as e:
         BOX_AVAILABLE = False
-        st.warning(f"Failed to authenticate with Box: {str(e)}. Files will be saved locally.")
-else:
-    st.warning("Box SDK not available. Files will be saved locally.")
+        st.warning(f"Failed to authenticate with Box: {e}")
 
-# -------------------- Local fallback --------------------
+# ---------- Local fallback ----------
 UPLOAD_DIR = 'uploads'
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# -------------------- UI --------------------
+# ---------- Streamlit Page Setup ----------
+st.set_page_config(
+    page_title="Mass Tort Client Intake Form",
+    page_icon="⚖️",
+    layout="wide"
+)
+
 st.image("https://www.simmonsandfletcher.com/wp-content/uploads/2024/11/Mass-Tort.jpg", width=300)
 st.title("Mass Tort Client Intake Form")
 st.markdown("""
@@ -49,11 +43,11 @@ Please complete the intake form below so our legal team can evaluate your case e
 """)
 st.markdown("---")
 
-# Sidebar navigation
+# ---------- Sidebar Navigation ----------
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to:", ["Personal Info", "Case Details", "Additional Info"])
 
-# -------------------- Form --------------------
+# ---------- Intake Form ----------
 with st.form("intake_form", clear_on_submit=False):
 
     if page == "Personal Info":
@@ -85,7 +79,11 @@ with st.form("intake_form", clear_on_submit=False):
         ])
         incident_date = st.date_input("Date of Incident / Exposure", max_value=date.today())
         case_description = st.text_area("Describe your experience or injury in detail")
-        uploaded_files = st.file_uploader("Upload any relevant documents", type=["pdf", "jpg", "png"], accept_multiple_files=True)
+        uploaded_files = st.file_uploader(
+            "Upload any relevant documents", 
+            type=["pdf", "jpg", "png"], 
+            accept_multiple_files=True
+        )
 
     elif page == "Additional Info":
         st.header("Step 3: Additional Information")
@@ -121,13 +119,12 @@ with st.form("intake_form", clear_on_submit=False):
                         result = folder.upload_stream(file, file.name)
                         st.success(f"Uploaded {file.name} to Box (ID: {result.id})")
                     else:
-                        with open(os.path.join(UPLOAD_DIR, file.name), "wb") as f:
-                            f.write(file.getbuffer())
-                            st.info(f"Saved {file.name} locally.")
-                except Exception as e:
-                    with open(os.path.join(UPLOAD_DIR, file.name), "wb") as f:
+                        raise Exception("Box not available, saving locally")
+                except Exception:
+                    local_path = os.path.join(UPLOAD_DIR, file.name)
+                    with open(local_path, "wb") as f:
                         f.write(file.getbuffer())
-                        st.warning(f"Failed to upload {file.name} to Box. Saved locally instead.")
+                    st.info(f"Saved {file.name} locally at {local_path}")
 
         # Save JSON metadata
         intake_filename = f"{first_name}_{last_name}_intake.json"
@@ -137,19 +134,18 @@ with st.form("intake_form", clear_on_submit=False):
                 folder.upload_stream(intake_bytes, intake_filename)
                 st.success("Intake form data saved to Box")
             else:
-                with open(os.path.join(UPLOAD_DIR, intake_filename), "wb") as f:
-                    f.write(intake_bytes)
-                    st.info("Intake form data saved locally")
-        except Exception as e:
-            with open(os.path.join(UPLOAD_DIR, intake_filename), "wb") as f:
+                raise Exception("Box not available, saving locally")
+        except Exception:
+            local_json_path = os.path.join(UPLOAD_DIR, intake_filename)
+            with open(local_json_path, "wb") as f:
                 f.write(intake_bytes)
-                st.warning("Failed to save data to Box. Saved locally instead.")
+            st.info(f"Intake form data saved locally at {local_json_path}")
 
         st.markdown("---")
         st.success("Form submitted successfully! Ready for Make.com workflow automation.")
         st.json(intake_data)
 
-# -------------------- Footer --------------------
+# ---------- Footer ----------
 st.markdown("---")
 st.markdown("""
 © 2025 Summit Legal. All Rights Reserved.  
