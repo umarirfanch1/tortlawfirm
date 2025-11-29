@@ -1,44 +1,24 @@
 import streamlit as st
+from boxsdk import JWTAuth, Client
+import json
 from datetime import date
 
-# ---------- Page Config ----------
+# ---------- Box.com Configuration ----------
+BOX_CONFIG_PATH = 'box_config.json'  # Save your JSON config as this file
+FOLDER_ID = '0'  # Replace with your Box folder ID for uploads
+
+# Authenticate with Box
+auth = JWTAuth.from_settings_file(BOX_CONFIG_PATH)
+client = Client(auth)
+folder = client.folder(folder_id=FOLDER_ID)
+
+# ---------- Page Setup ----------
 st.set_page_config(
     page_title="Summit Legal Mass Tort Intake",
     page_icon="⚖️",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    layout="wide"
 )
 
-# ---------- Custom CSS ----------
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #f4f6f8;
-        font-family: 'Helvetica', sans-serif;
-    }
-    h1, h2, h3 {
-        color: #1F2937;
-    }
-    .stButton>button {
-        background-color: #4F46E5;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 8px 24px;
-    }
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        border-radius: 6px;
-        padding: 6px;
-    }
-    .stFileUploader>div>div>input {
-        border-radius: 6px;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
-
-# ---------- Header ----------
 st.image("https://www.simmonsandfletcher.com/wp-content/uploads/2024/11/Mass-Tort.jpg", width=300)
 st.title("Mass Tort Client Intake Form")
 st.markdown("""
@@ -83,7 +63,7 @@ with st.form("intake_form", clear_on_submit=False):
         ])
         incident_date = st.date_input("Date of Incident / Exposure", max_value=date.today())
         case_description = st.text_area("Describe your experience or injury in detail")
-        documents = st.file_uploader("Upload any relevant documents", type=["pdf", "jpg", "png"], accept_multiple_files=True)
+        uploaded_files = st.file_uploader("Upload any relevant documents", type=["pdf", "jpg", "png"], accept_multiple_files=True)
 
     elif page == "Additional Info":
         st.header("Step 3: Additional Information")
@@ -94,6 +74,7 @@ with st.form("intake_form", clear_on_submit=False):
     submitted = st.form_submit_button("Submit Intake Form")
 
     if submitted:
+        # Prepare intake data dictionary
         intake_data = {
             "first_name": first_name,
             "last_name": last_name,
@@ -104,12 +85,31 @@ with st.form("intake_form", clear_on_submit=False):
             "mass_tort_type": mass_tort_type,
             "incident_date": str(incident_date),
             "case_description": case_description,
-            "documents_uploaded": [doc.name for doc in documents] if documents else [],
+            "documents_uploaded": [file.name for file in uploaded_files] if uploaded_files else [],
             "represented": represented,
             "consent": consent,
             "referral_source": referral_source
         }
-        st.success("Thank you! Your intake form has been submitted successfully.")
+
+        # Upload files to Box
+        if uploaded_files:
+            for file in uploaded_files:
+                try:
+                    result = folder.upload_stream(file, file.name)
+                    st.success(f"Uploaded {file.name} to Box (ID: {result.id})")
+                except Exception as e:
+                    st.error(f"Failed to upload {file.name} to Box: {str(e)}")
+
+        # Upload JSON metadata to Box
+        try:
+            json_bytes = json.dumps(intake_data).encode('utf-8')
+            folder.upload_stream(json_bytes, f"{first_name}_{last_name}_intake.json")
+            st.success("Intake form data saved to Box")
+        except Exception as e:
+            st.error(f"Failed to save intake data to Box: {str(e)}")
+
+        st.markdown("---")
+        st.success("Form submitted successfully! Ready for Make.com workflow automation.")
         st.json(intake_data)
 
 # ---------- Footer ----------
