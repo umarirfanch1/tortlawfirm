@@ -3,28 +3,7 @@ import json
 import os
 from datetime import date
 
-# ---------- Box SDK Setup (Safe) ----------
-try:
-    from boxsdk import JWTAuth, Client
-    BOX_AVAILABLE = True
-except Exception as e:
-    BOX_AVAILABLE = False
-    st.warning(f"Box SDK not available, file uploads will be saved locally.\nDetails: {e}")
-
-# ---------- Box Authentication ----------
-FOLDER_ID = '0'  # Replace with your Box folder ID if needed
-BOX_CONFIG_PATH = 'box_config.json'
-
-if BOX_AVAILABLE:
-    try:
-        auth = JWTAuth.from_settings_file(BOX_CONFIG_PATH)
-        client = Client(auth)
-        folder = client.folder(folder_id=FOLDER_ID)
-    except Exception as e:
-        BOX_AVAILABLE = False
-        st.warning(f"Failed to authenticate with Box: {e}")
-
-# ---------- Local fallback ----------
+# ---------- Local storage fallback ----------
 UPLOAD_DIR = 'uploads'
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -111,35 +90,20 @@ with st.form("intake_form", clear_on_submit=False):
             "referral_source": referral_source
         }
 
-        # Upload files
+        # Save uploaded files locally
         if uploaded_files:
             for file in uploaded_files:
-                try:
-                    if BOX_AVAILABLE:
-                        result = folder.upload_stream(file, file.name)
-                        st.success(f"Uploaded {file.name} to Box (ID: {result.id})")
-                    else:
-                        raise Exception("Box not available, saving locally")
-                except Exception:
-                    local_path = os.path.join(UPLOAD_DIR, file.name)
-                    with open(local_path, "wb") as f:
-                        f.write(file.getbuffer())
-                    st.info(f"Saved {file.name} locally at {local_path}")
+                local_path = os.path.join(UPLOAD_DIR, file.name)
+                with open(local_path, "wb") as f:
+                    f.write(file.getbuffer())
+                st.info(f"Saved {file.name} locally at {local_path}")
 
-        # Save JSON metadata
+        # Save JSON metadata locally
         intake_filename = f"{first_name}_{last_name}_intake.json"
-        intake_bytes = json.dumps(intake_data).encode('utf-8')
-        try:
-            if BOX_AVAILABLE:
-                folder.upload_stream(intake_bytes, intake_filename)
-                st.success("Intake form data saved to Box")
-            else:
-                raise Exception("Box not available, saving locally")
-        except Exception:
-            local_json_path = os.path.join(UPLOAD_DIR, intake_filename)
-            with open(local_json_path, "wb") as f:
-                f.write(intake_bytes)
-            st.info(f"Intake form data saved locally at {local_json_path}")
+        local_json_path = os.path.join(UPLOAD_DIR, intake_filename)
+        with open(local_json_path, "wb") as f:
+            f.write(json.dumps(intake_data).encode('utf-8'))
+        st.info(f"Intake form data saved locally at {local_json_path}")
 
         st.markdown("---")
         st.success("Form submitted successfully! Ready for Make.com workflow automation.")
