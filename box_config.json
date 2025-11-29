@@ -1,0 +1,12 @@
+{
+  "boxAppSettings": {
+    "clientID": "vgt63636t444pzdydnptkm0olgcsie6g",
+    "clientSecret": "0djNylVb5hdnIjW2jh96jbuO7YJin57f",
+    "appAuth": {
+      "publicKeyID": "uco6djgb",
+      "privateKey": "-----BEGIN ENCRYPTED PRIVATE KEY-----\\nMIIFNTBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQZHUYA1yU/03u598s\\nWV/sOgICCAAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEOtnguvN6UNSBIYx\\nGP/85lsEggTQykeXomHKwyEULSgTyEzDoyyVjsOIV80AePCtrvDTP1fRCkM1JxtW\\nEkY3rTp0ZHoj5GNNog7oJQzR6Bh46lrJKzfxQYnC7JCxyuvUrYyLEoy7aTdY6WMb\\neeRekbuM/LzJidblYq+Pt1/GP2cVhOXsB3KHSOH4WLwM2OkU2B4slwWNMNLC4UvV\\nOoKiN9Jhh0AYCSPkvucVeZElP9gYb04Le2tnWwam9PikFYz8YB3Xc+o1cNKRpFiD\\nKume9iALD3gLgK6VBgcOvoeYHNrVDztHPZJWP6OtAnuEziz3TXgA49/I4XX2aK+z\\nZBGrVdrCJ6L8nMNTM9lyHmmmWNE1kjAjfsWwUd+l6cSCYA+APYlWOGM9/26Wrtb3\\ngx+Lg6kJ37O5aAPC+BGjIHikGQuecL6hOIWNklG3mpVLh1VfWSqBHAf5YqLTHW5h\\nP+c7RmLPA/U41Uz99KhSG0jZSSfWVEt78osUtUc+ovpWQBwyeGUblJdD2w4VnqxR\\n12CMNEeeKK5x0RT3txVlgIcuk5E/HSdqRiQnPsWeAoplnrcq1E2LEmCQpabh2Fnl\\ngqIAqIdndwa3TzQ5YGM2DtFxPCqgA+HGMS9EI2wyUyF7BwRvFQ1eTjWKGO+H/SdN\\nIC0bz0J3hPqOkxGPf0BLyBBtmRIzsDFMI5D3OpcGdzKtim2WNkTga28B8KLLzQY6\\ncr98UZCteQSLgxfy1vR20nUwla9x0eAF+XiS0FMCbrGggoXdSMpA+NzD7lE69/VK\\nzMun56XKIjPmwPLvspLg8npwetON7A0qa4z6cxoh7y801Hqnpuyx5PXLba393vwe\\nWAkQvD0T7sDPqIA9638xTHpK5/vhue1oHVivHRAFXAAuUwYsWltbECyuaKdLGfbC\\nPr3qrRNCo2kJXLJ1TGdI2PI1mBAoEJ2eT8nonpOHkjfy4uVSfAJ7JbPkwpoaatiF\\nxeB2FhP+avHHx6Epu3Mp/g9c+Ey9UUmGQxk/LoLvX29dt6ABygmV0hPToHEgr4tw\\nwjFFkkbZBalQbeuOLaiLFmJN+/8dFZL644RC4Y9PsIl2epkETsVhvKg4C3VItbAs\\ncpjk8R3v1TJq6C7cMkB7pgvHBgUeYHlDQBR6T2BbNbTiRsUA6lo/GoQD3ibBywav\\nRHq2iVUn88OcujL1mWTbvhjKQSLQTkh3NdI3quxuHHlNZsjSMdE6o+2dbbOF8tj8\\nnSNXrDP7ANM5kKci1q4I12ODLUdi9XHV7IRwj3bsMZ5bkMI7csXKQZoniRAj9b/i\\n/f9OME3cGq//+BO/9aHIXh3qsvTS8RQTCwJRcVJSk6BDfz/ZEFafgdwNc3ZVnKGa\\nlDM/nLw0xPx+oyAjy5Lif9gj4Fxi4z8n71uIsMhQ2WFmUwonFFmMIe1SBj4ubivt\\nC5/Kh6GDg9aLjqC34Hyz9yaewz/uJRsEPSvbSW4b7TTeyKIrEHcGQ8Q3LPjpj+fp\\njIBf/G+mr2wglSliX2ZWx/I5G1Uys/Ko9a92ZUT8cGmPADOiWLqTk+KW8jJTNOTm\\nfaT7f94CDTgnaLvaAX96+14+okL0iW07HQoVn+gA66Hv4sfJvetTYt/jfCgjKJ7C\\ngL65N8sN1MTDonvdEojkrgndvtuB/Sf2+ovgAMMcuWzI625kGcHVKSI=\\n-----END ENCRYPTED PRIVATE KEY-----\\n",
+      "passphrase": "309d4e3102092aa07ab506c49e915ed2"
+    }
+  },
+  "enterpriseID": "0"
+}
