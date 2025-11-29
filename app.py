@@ -1,20 +1,36 @@
 import streamlit as st
-from boxsdk import JWTAuth, Client
 import json
+import os
 from datetime import date
 
-# ---------- Box.com Configuration ----------
-BOX_CONFIG_PATH = 'box_config.json'  # Save your JSON config as this file
-FOLDER_ID = '0'  # Replace with your Box folder ID for uploads
+# ---------- Box SDK Setup ----------
+try:
+    from boxsdk import JWTAuth, Client
+    BOX_AVAILABLE = True
+except ImportError:
+    BOX_AVAILABLE = False
+    st.warning("Box SDK not installed. File uploads will be saved locally.")
 
-# Authenticate with Box
-auth = JWTAuth.from_settings_file(BOX_CONFIG_PATH)
-client = Client(auth)
-folder = client.folder(folder_id=FOLDER_ID)
+# ---------- Box Authentication ----------
+FOLDER_ID = '0'  # Change to your Box folder ID if needed
+BOX_CONFIG_PATH = 'box_config.json'
 
-# ---------- Page Setup ----------
+if BOX_AVAILABLE:
+    try:
+        auth = JWTAuth.from_settings_file(BOX_CONFIG_PATH)
+        client = Client(auth)
+        folder = client.folder(folder_id=FOLDER_ID)
+    except Exception as e:
+        BOX_AVAILABLE = False
+        st.error(f"Failed to authenticate with Box: {str(e)}")
+
+# ---------- Local fallback ----------
+UPLOAD_DIR = 'uploads'
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# ---------- Streamlit Page Setup ----------
 st.set_page_config(
-    page_title="Summit Legal Mass Tort Intake",
+    page_title="Mass Tort Client Intake Form",
     page_icon="⚖️",
     layout="wide"
 )
@@ -31,7 +47,7 @@ st.markdown("---")
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to:", ["Personal Info", "Case Details", "Additional Info"])
 
-# ---------- Form ----------
+# ---------- Intake Form ----------
 with st.form("intake_form", clear_on_submit=False):
 
     if page == "Personal Info":
@@ -91,22 +107,38 @@ with st.form("intake_form", clear_on_submit=False):
             "referral_source": referral_source
         }
 
-        # Upload files to Box
+        # Upload files to Box or local fallback
         if uploaded_files:
             for file in uploaded_files:
-                try:
-                    result = folder.upload_stream(file, file.name)
-                    st.success(f"Uploaded {file.name} to Box (ID: {result.id})")
-                except Exception as e:
-                    st.error(f"Failed to upload {file.name} to Box: {str(e)}")
+                if BOX_AVAILABLE:
+                    try:
+                        result = folder.upload_stream(file, file.name)
+                        st.success(f"Uploaded {file.name} to Box (ID: {result.id})")
+                    except Exception as e:
+                        st.error(f"Failed to upload {file.name} to Box: {str(e)}. Saved locally instead.")
+                        # fallback local save
+                        with open(os.path.join(UPLOAD_DIR, file.name), "wb") as f:
+                            f.write(file.getbuffer())
+                else:
+                    with open(os.path.join(UPLOAD_DIR, file.name), "wb") as f:
+                        f.write(file.getbuffer())
+                        st.info(f"Saved {file.name} locally.")
 
-        # Upload JSON metadata to Box
-        try:
-            json_bytes = json.dumps(intake_data).encode('utf-8')
-            folder.upload_stream(json_bytes, f"{first_name}_{last_name}_intake.json")
-            st.success("Intake form data saved to Box")
-        except Exception as e:
-            st.error(f"Failed to save intake data to Box: {str(e)}")
+        # Save JSON metadata
+        intake_filename = f"{first_name}_{last_name}_intake.json"
+        intake_bytes = json.dumps(intake_data).encode('utf-8')
+        if BOX_AVAILABLE:
+            try:
+                folder.upload_stream(intake_bytes, intake_filename)
+                st.success("Intake form data saved to Box")
+            except Exception as e:
+                st.error(f"Failed to save intake data to Box: {str(e)}. Saving locally instead.")
+                with open(os.path.join(UPLOAD_DIR, intake_filename), "wb") as f:
+                    f.write(intake_bytes)
+        else:
+            with open(os.path.join(UPLOAD_DIR, intake_filename), "wb") as f:
+                f.write(intake_bytes)
+                st.info("Intake form data saved locally")
 
         st.markdown("---")
         st.success("Form submitted successfully! Ready for Make.com workflow automation.")
