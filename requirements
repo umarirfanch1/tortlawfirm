@@ -1,2 +1,2 @@
-streamlit
-boxsdk
+streamlit==1.30.0
+boxsdk==2.14.0
